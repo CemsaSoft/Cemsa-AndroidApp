@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Conexion Con SQL Server 2</string>
+    <string name="mail">Mail:</string>
+    <string name="agregar">Agregar</string>
+    <string name="buscar">Buscar</string>
+    <string name="registro">Registro</string>
+    <string name="Mensaje_Central_Meteorológica">Mensaje Central Meteorológica</string>
+    <string name="Ultimo_Mensaje">Ultimo Mensaje:</string>
+    <string name="Ingresar_nombre">Ingresar Nombre</string>
+    <string name="ingrersar_correo">Ingrersar Correo</string>
+    <string name="mensaje">Mensaje</string>
+    <string name="mensaje_central_meteorol_gica">Mensaje Central Meteorológica</string>
+
+    <string name="col1">Cuenta</string>
+    <string name="col2">Nro</string>
+    <string name="col3">Servicio</string>
+    <string name="col4">Valor</string>
+    <string name="col5">Hora Msn</string>
+
+    <string name="row1Name">Ali</string>
+    <string name="row1Age">51</string>
+    <string name="row1Surname">Mohammad</string>
+    <string name="row2Name">Dave</string>
+    <string name="row2Age">45</string>
+    <string name="row2Surname">Smith</string>
+    <string name="row3Name">Jason</string>
+    <string name="row3Age">67</string>
+    <string name="row3Surname">William</string>
+    <string name="actualizar_lista">Actualizar Lista</string>
+</resources>

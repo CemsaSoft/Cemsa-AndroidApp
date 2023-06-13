@@ -42,10 +42,12 @@
         android:ems="10"
         android:hint="Último Mensaje"
         android:importantForAutofill="no"
+        android:enabled="false"
         android:inputType="text"
         tools:ignore="MissingConstraints"
         tools:layout_editor_absoluteX="16dp"
         tools:layout_editor_absoluteY="106dp" />
+
 
     <TextView
         android:layout_width="match_parent"
@@ -67,6 +69,7 @@
         android:ems="10"
         android:hint="Hora Último Mensaje"
         android:importantForAutofill="no"
+        android:enabled="false"
         android:inputType="text"
         tools:ignore="MissingConstraints"
         tools:layout_editor_absoluteX="16dp"
@@ -92,6 +95,7 @@
         android:ems="10"
         android:hint="Consola Mensaje"
         android:importantForAutofill="no"
+        android:enabled="false"
         android:inputType="text"
         tools:ignore="MissingConstraints"
         tools:layout_editor_absoluteX="16dp"

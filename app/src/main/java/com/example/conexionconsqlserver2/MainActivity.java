@@ -30,17 +30,14 @@ import org.json.JSONObject;
 import java.util.Timer;
 import java.util.TimerTask;
 
-
 public class MainActivity extends AppCompatActivity {
 
-    String texto="";
-    EditText edtHoraMensaje, edtConsolaMensaje;
-    EditText edtMensaje;
-    Button btnAgregar;
-    Button btnBuscar;
-    TableLayout listaM;
-    RequestQueue requestQueue;
-    String[] parts, medicion;
+    private EditText edtMensaje, edtHoraMensaje, edtConsolaMensaje;
+    private TableLayout listaM;
+    private RequestQueue requestQueue;
+
+    private static final String URL = "https://cemsa2023.000webhostapp.com/buscar_tMedicion.php";
+    private static final int PERMISSION_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,69 +46,65 @@ public class MainActivity extends AppCompatActivity {
 
         requestSMSPermission();
 
-        edtMensaje=(EditText)findViewById(R.id.edtMensaje);
-        edtHoraMensaje=(EditText)findViewById(R.id.edtHoraMensaje);
-        edtConsolaMensaje=(EditText)findViewById(R.id.edtConsolaMensaje);
-        listaM=(TableLayout)findViewById(R.id.lista);
+        edtMensaje = findViewById(R.id.edtMensaje);
+        edtHoraMensaje = findViewById(R.id.edtHoraMensaje);
+        edtConsolaMensaje = findViewById(R.id.edtConsolaMensaje);
+        listaM = findViewById(R.id.lista);
 
-        buscarMedicion("https://cemsa2023.000webhostapp.com/buscar_tMedicion.php");
-        //buscarMedicion("https://cemsa2021.000webhostapp.com/buscar_tMedicion.php");
-        new OTP_Receiver().setEditText(edtMensaje,edtHoraMensaje,edtConsolaMensaje);
+        buscarMedicion(URL);
+        OTP_Receiver otpReceiver = new OTP_Receiver(edtMensaje, edtHoraMensaje, edtConsolaMensaje);
 
         Timer timer = new Timer();
         TimerTask tarea = new TimerTask() {
             @Override
             public void run() {
-                //buscarMedicion("https://cemsa2021.000webhostapp.com/buscar_tMedicion.php");
-                buscarMedicion("https://cemsa2023.000webhostapp.com/buscar_tMedicion.php");
-
+                buscarMedicion(URL);
             }
         };
-        timer.schedule(tarea, 100 , 60000);
+        timer.schedule(tarea, 100, 60000);
 
-        Button btnAgregar=(Button)findViewById(R.id.btnActualizarMedicion);
-        btnAgregar.setOnClickListener(new View.OnClickListener() {
+        Button btnActualizarMedicion = findViewById(R.id.btnActualizarMedicion);
+        btnActualizarMedicion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //buscarMedicion("https://cemsa2021.000webhostapp.com/buscar_tMedicion.php");
-                buscarMedicion("https://cemsa2023.000webhostapp.com/buscar_tMedicion.php");
-
+                buscarMedicion(URL);
             }
         });
     }
 
-    /* This function will be called by the broadcast receiver */
-    private void requestSMSPermission()
-    {
+    private void requestSMSPermission() {
         String permission = Manifest.permission.RECEIVE_SMS;
         int grant = ContextCompat.checkSelfPermission(this, permission);
-        if (grant != PackageManager.PERMISSION_GRANTED)
-        {
-            String[] permission_list = new String[1];
-            permission_list[0] = permission;
-            ActivityCompat.requestPermissions(this, permission_list,1);
+        if (grant != PackageManager.PERMISSION_GRANTED) {
+            String[] permissionList = {permission};
+            ActivityCompat.requestPermissions(this, permissionList, PERMISSION_REQUEST_CODE);
         }
     }
-    private void buscarMedicion(String URL){
-        JsonArrayRequest jsonArrayRequest=new JsonArrayRequest(URL, new Response.Listener<JSONArray>() {
+
+    private void buscarMedicion(String url) {
+        JsonArrayRequest jsonArrayRequest = new JsonArrayRequest(url, new Response.Listener<JSONArray>() {
             @Override
             public void onResponse(JSONArray response) {
-                JSONObject jsonObject = null;
-                TableLayout lista = (TableLayout) findViewById(R.id.lista);
-                //borro la lista
-                lista.removeAllViews();
-                String [] cadenaE={"Med id","Med Nro","Med Ser","Med Valor","Fecha Hora Reg"};
-                lista.addView(insertarValorTabla(cadenaE,Color.WHITE,R.color.colorPrimary));
+                try {
+                    TableLayout lista = findViewById(R.id.lista);
+                    lista.removeAllViews();
 
-                for (int ii = 0; ii < response.length(); ii++) {
-                    try {
-                        jsonObject = response.getJSONObject(ii);
-                        String [] cadena={jsonObject.getString("med_id"),jsonObject.getString("med_nro"),jsonObject.getString("med_ser"),jsonObject.getString("med_valor"),jsonObject.getString("med_fechaHoraSMS")};
-                        lista.addView(insertarValorTabla(cadena,Color.BLACK,R.color.colorVerdeAgua));
+                    String[] headers = {"Med id", "Med Nro", "Med Ser", "Med Valor", "Fecha Hora Reg"};
+                    lista.addView(insertarValorTabla(headers, Color.WHITE, R.color.colorPrimary));
 
-                    } catch (JSONException e) {
-                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
+                    for (int i = 0; i < response.length(); i++) {
+                        JSONObject jsonObject = response.getJSONObject(i);
+                        String[] values = {
+                                jsonObject.getString("med_id"),
+                                jsonObject.getString("med_nro"),
+                                jsonObject.getString("med_ser"),
+                                jsonObject.getString("med_valor"),
+                                jsonObject.getString("med_fechaHoraSMS")
+                        };
+                        lista.addView(insertarValorTabla(values, Color.BLACK, R.color.colorVerdeAgua));
                     }
+                } catch (JSONException e) {
+                    Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         }, new Response.ErrorListener() {
@@ -119,50 +112,21 @@ public class MainActivity extends AppCompatActivity {
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(getApplicationContext(), "ERROR de Conexión", Toast.LENGTH_SHORT).show();
             }
-        }
-        );
-        requestQueue= Volley.newRequestQueue(this);
+        });
+
+        requestQueue = Volley.newRequestQueue(this);
         requestQueue.add(jsonArrayRequest);
     }
 
-    public void agregarRegTabla(JSONArray response){
-        JSONObject jsonObject = null;
-        TableLayout lista = (TableLayout) findViewById(R.id.lista);
-        //borro la lista
-        lista.removeAllViews();
-        String [] cadenaE={"Med id","Med Nro","Med Ser","Med Valor","Fecha Hora Reg"};
-        lista.addView(insertarValorTabla(cadenaE,Color.WHITE,R.color.colorPrimary));
-
-        for (int ii = 0; ii < response.length(); ii++) {
-            try {
-                jsonObject = response.getJSONObject(ii);
-                String [] cadena={jsonObject.getString("med_id"),jsonObject.getString("med_nro"),jsonObject.getString("med_ser"),jsonObject.getString("med_valor"),jsonObject.getString("med_fechaHoraRegistro")};
-                lista.addView(insertarValorTabla(cadena,Color.BLACK,R.color.colorVerdeAgua));
-
-            } catch (JSONException e) {
-                Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    public TableRow insertarValorTabla(String[] cadena, Integer colorLetra, Integer colorFondo){
-        TextView textView;
-        //abrimos el table row agregar las filas
-        TableRow row=new TableRow(getBaseContext());
-        for(int i=0;i<5;i++){
-            //abrimos un constructor del textview haciendo referencia a este proyecto
-            textView = new TextView(getBaseContext());
-            //para centrar el texto
+    private TableRow insertarValorTabla(String[] values, int colorLetra, int colorFondo) {
+        TableRow row = new TableRow(getBaseContext());
+        for (int i = 0; i < values.length; i++) {
+            TextView textView = new TextView(getBaseContext());
             textView.setGravity(Gravity.CENTER_VERTICAL);
-            //le damos dimenciones al textview
             textView.setPadding(10, 15, 10, 15);
-            //un color de fondo
             textView.setBackgroundResource(colorFondo);
-            //agregamos los datos del vector cadena uno por uno al textview
-            textView.setText(cadena[i]);
-            //color de texto en el textview
+            textView.setText(values[i]);
             textView.setTextColor(colorLetra);
-            //agregamos el textview al TableRow
             row.addView(textView);
         }
         return row;

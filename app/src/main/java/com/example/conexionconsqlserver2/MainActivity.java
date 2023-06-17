@@ -12,10 +12,15 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import android.content.ContentResolver;
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.Telephony;
+import android.util.Log;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -27,6 +32,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -52,8 +59,8 @@ public class MainActivity extends AppCompatActivity {
         listaM = findViewById(R.id.lista);
 
         buscarMedicion(URL);
-        OTP_Receiver otpReceiver = new OTP_Receiver(edtMensaje, edtHoraMensaje, edtConsolaMensaje);
-
+        new OTP_Receiver().setEditText(edtMensaje,edtHoraMensaje,edtConsolaMensaje);
+/*
         Timer timer = new Timer();
         TimerTask tarea = new TimerTask() {
             @Override
@@ -62,14 +69,18 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         timer.schedule(tarea, 100, 60000);
-
+*/
         Button btnActualizarMedicion = findViewById(R.id.btnActualizarMedicion);
         btnActualizarMedicion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                buscarMedicion(URL);
+                //buscarMedicion(URL);
+                listarMensajesNoLeidos();
             }
         });
+
+        //listarMensajesSMS();
+        //listarMensajesNoLeidos();
     }
 
     private void requestSMSPermission() {
@@ -131,4 +142,59 @@ public class MainActivity extends AppCompatActivity {
         }
         return row;
     }
+
+    private void listarMensajesSMS() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
+            try {
+                Uri uri = Uri.parse("content://sms/inbox");
+                Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+                if (cursor != null && cursor.moveToFirst()) {
+                    do {
+                        String address = cursor.getString(cursor.getColumnIndex("address"));
+                        String body = cursor.getString(cursor.getColumnIndex("body"));
+                        // Aquí puedes mostrar o utilizar los datos de los mensajes SMS como desees
+                        Log.d("SMS", "Address: " + address + ", Body: " + body);
+                    } while (cursor.moveToNext());
+                    cursor.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            // Si no tienes permiso para leer los mensajes SMS, solicítalo
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, PERMISSION_REQUEST_CODE);
+        }
+    }
+    private void listarMensajesNoLeidos() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) {
+            try {
+                Uri uri = Uri.parse("content://sms/inbox");
+                Cursor cursor = getContentResolver().query(uri, null, "read = 0", null, null);
+                if (cursor != null && cursor.moveToFirst()) {
+                    do {
+                        String address = cursor.getString(cursor.getColumnIndex("address"));
+                        String body = cursor.getString(cursor.getColumnIndex("body"));
+                        long timestamp = cursor.getLong(cursor.getColumnIndex("date"));
+
+                        // Obtener la hora del mensaje
+                        Calendar calendar = Calendar.getInstance();
+                        calendar.setTimeInMillis(timestamp);
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        String horaMensaje = dateFormat.format(calendar.getTime());
+
+                        // Aquí puedes mostrar o utilizar los datos de los mensajes SMS no leídos como desees
+                        Log.d("SMS", "Address: " + address + ", Body: " + body + ", Timestamp: " + horaMensaje);
+                    } while (cursor.moveToNext());
+                    cursor.close();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } else {
+            // Si no tienes permiso para leer los mensajes SMS, solicítalo
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_SMS}, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+
 }
